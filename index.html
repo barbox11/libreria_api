@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librería Online</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Catálogo de Libros 📚</h1>
+        
+        <!-- Formulario para agregar libros -->
+        <div class="form-container">
+            <h2>Agregar Nuevo Libro</h2>
+            <form id="libro-form">
+                <input type="text" id="titulo" placeholder="Título" required>
+                <input type="text" id="autor" placeholder="Autor" required>
+                <input type="text" id="genero" placeholder="Género" required>
+                <input type="number" id="precio" placeholder="Precio" step="0.01" required>
+                <input type="number" id="stock" placeholder="Stock" required>
+                <button type="submit">Agregar Libro</button>
+            </form>
+        </div>
+
+        <!-- Lista de libros -->
+        <div class="libros-container">
+            <h2>Libros Disponibles</h2>
+            <div id="libros-lista" class="grid-libros"></div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar libros
+        function cargarLibros() {
+            fetch("http://localhost/libreria_api/api.php")
+                .then(response => response.json())
+                .then(data => {
+                    const lista = document.getElementById("libros-lista");
+                    lista.innerHTML = ''; // Limpiar lista
+                    
+                    data.forEach(libro => {
+                        const card = document.createElement("div");
+                        card.className = "libro-card";
+                        card.innerHTML = `
+                            <h3>${libro.titulo}</h3>
+                            <p><strong>Autor:</strong> ${libro.autor}</p>
+                            <p><strong>Género:</strong> ${libro.genero}</p>
+                            <p><strong>Precio:</strong> $${libro.precio}</p>
+                            <p><strong>Stock:</strong> ${libro.stock} unidades</p>
+                        `;
+                        lista.appendChild(card);
+                    });
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        // Agregar libro
+        document.getElementById("libro-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const nuevoLibro = {
+                titulo: document.getElementById("titulo").value,
+                autor: document.getElementById("autor").value,
+                genero: document.getElementById("genero").value,
+                precio: parseFloat(document.getElementById("precio").value),
+                stock: parseInt(document.getElementById("stock").value)
+            };
+
+            fetch("http://localhost/libreria_api/api.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(nuevoLibro)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                this.reset();
+                cargarLibros();
+            })
+            .catch(error => console.error("Error:", error));
+        });
+
+        // Cargar libros al iniciar
+        cargarLibros();
+    </script>
+</body>
+</html>
